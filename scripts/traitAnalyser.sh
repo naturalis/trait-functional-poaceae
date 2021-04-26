@@ -25,15 +25,15 @@ EOLTOKEN=$(cat eol.token)
 
 #The third column was added because some species have multiple measurements
 #for one trait.
-QUERY='MATCH (child:Page)-[:parent*]->(ancestor:Page {page_id: '$PAGEID'}),
-       (child)-[:trait]->(trait:Trait)-[:predicate]->(pred:Term)
-       //WHERE child.canonical STARTS WITH "Triticum aestivum"
+QUERY="MATCH (child:Page)-[:parent*]->(:Page {page_id: $PAGEID}),
+       (child)-[:trait]->(:Trait)-[:predicate]->(pred:Term)
+       //WHERE child.canonical STARTS WITH 'Triticum aestivum'
 
        WITH child, pred, count(pred.name) AS traits, 1 AS species
        RETURN pred.name AS trait, SUM(traits) AS total_occurance,
               SUM(species) AS unique_occurance
        ORDER BY total_occurance DESC
-       //LIMIT 100;'
+       //LIMIT 100;"
 
 #Use cURL to get the data from the EoL database in CSV format.
 #-H gives a header containing authorization token.
