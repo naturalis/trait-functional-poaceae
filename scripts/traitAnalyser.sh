@@ -19,9 +19,12 @@ EOLTOKEN=$(cat eol.token)
 #their traits. Each trait is counted per species, and a '1' is put for the
 #number of species. Then, each trait and species are summed.
 
-#This query returns three columns. The first column contains the name of a
+#This query returns six columns. The first column contains the name of a
 #trait, the second column shows the total number of occurances. The third
 #column shows the number of species that have measurements for this trait.
+#The fourth column contains the source URI for a trait. The fifth column
+#contains a definition of that trait as provided by the ontology. The sixth
+#column may have comments made by EOL.org curators.
 
 #The third column was added because some species have multiple measurements
 #for one trait.
