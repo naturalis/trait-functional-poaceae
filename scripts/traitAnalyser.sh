@@ -31,7 +31,8 @@ QUERY="MATCH (child:Page)-[:parent*]->(:Page {page_id: $PAGEID}),
 
        WITH child, pred, count(pred.name) AS traits, 1 AS species
        RETURN pred.name AS trait, SUM(traits) AS total_occurance,
-              SUM(species) AS unique_occurance
+              SUM(species) AS unique_occurance, pred.uri AS uri,
+              pred.definition AS definition, pred.comment AS comment
        ORDER BY total_occurance DESC
        //LIMIT 100;"
 
