@@ -20,7 +20,7 @@ EOLTOKEN=$(cat eol.token)
 #number of species. Then, each trait and species are summed.
 
 #This query returns six columns. The first column contains the name of a
-#trait, the second column shows the total number of occurances. The third
+#trait, the second column shows the total number of occurrences. The third
 #column shows the number of species that have measurements for this trait.
 #The fourth column contains the source URI for a trait. The fifth column
 #contains a definition of that trait as provided by the ontology. The sixth
@@ -33,10 +33,10 @@ QUERY="MATCH (child:Page)-[:parent*]->(:Page {page_id: $PAGEID}),
        //WHERE child.canonical STARTS WITH 'Triticum aestivum'
 
        WITH child, pred, count(pred.name) AS traits, 1 AS species
-       RETURN pred.name AS trait, SUM(traits) AS total_occurance,
-              SUM(species) AS unique_occurance, pred.uri AS uri,
+       RETURN pred.name AS trait, SUM(traits) AS total_occurrence,
+              SUM(species) AS unique_occurrence, pred.uri AS uri,
               pred.definition AS definition, pred.comment AS comment
-       ORDER BY total_occurance DESC
+       ORDER BY total_occurrence DESC
        //LIMIT 100;"
 
 #Use cURL to get the data from the EoL database in CSV format.
