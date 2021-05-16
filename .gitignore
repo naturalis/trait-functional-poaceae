@@ -1,4 +1,7 @@
 *.Rproj
+*.DS_Store
+eol.token
+
 
 # History files
 .Rhistory
