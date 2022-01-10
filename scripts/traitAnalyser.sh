@@ -10,7 +10,7 @@
 #Page ID of desired group
 #Poales page ID: 4075
 #Poaceae page ID: 8223
-PAGEID=4075
+PAGEID=8223
 #EoL.org authorization token.
 EOLTOKEN=$(cat eol.token)
 
