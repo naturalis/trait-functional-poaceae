@@ -229,7 +229,7 @@ To supplement the Pagel's lambda measure of phylogenetic signal, two trees were 
 library(ggtree)
 library(ggplot2)
 ```
-```{r treefigure, fig.height=5, fig.width=16.5, message=FALSE}
+```{r treefigure, fig.height=5, fig.width=16.5, message=FALSE, fig.show='hold'}
 # Join the phylogenetic tree with the data frame containing seed mass.
 annotated_tree = full_join(tree, with_layer, by = c("label" = "organism"))
 
