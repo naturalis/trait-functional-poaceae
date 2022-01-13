@@ -148,7 +148,7 @@ axis(side = 1, at = 1:3,
 
 ### Environmental Data Preprocessing
 
-Environmental data about angiosperms were collected by Esther de Regt for a [similar study](https://github.com/naturalis/angiosperm-traits) attempting to find a correlation between several angiosperm traits and their environmental variables. This data was imported and merged with the data frame of wild species' seed mass. This merge created a new data frame of the organisms that exist in both the environmental data and the seed mass data. The organism names were changed to replace spaces with underscores for compatability reasons later.
+Environmental data about angiosperms were collected by Esther de Regt for a [similar study](https://github.com/naturalis/angiosperm-traits) attempting to find a correlation between several angiosperm traits and their environmental variables. This data was saved locally, but a copy of this table hosted by github is also available [here](https://github.com/naturalis/angiosperm-traits/blob/master/raw_means.csv). This table was imported and merged with the data frame of wild species' seed mass. This merge created a new data frame of the organisms that exist in both the environmental data and the seed mass data. The organism names were changed to replace spaces with underscores for compatability reasons later.
 
 ```{r loadLayers}
 
