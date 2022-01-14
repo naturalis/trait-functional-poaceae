@@ -26,11 +26,7 @@ knitr::kable(dependencies)
 
 ### Seed Mass Preprocessing
 
-To start, the trait data gathered from EoL is imported. This data is described more in the [README](https://github.com/naturalis/trait-functional-poaceae/tree/main/scripts) of the scripts directory, and in the [shell script](https://github.com/naturalis/trait-functional-poaceae/blob/main/scripts/traitGetData.sh) used to download the data. For this step, make sure the path leads to the correct location of these data files. In the first code block, please enter the path you have saved the trait-functional-poaceae directory of this project.
-
-```{r include=FALSE}
-project_path = '~/Documents/School/HAN/internships/Naturalis/Project/'
-```
+To start, the trait data gathered from EoL is imported. This data is described more in the [README](https://github.com/naturalis/trait-functional-poaceae/tree/main/scripts) of the scripts directory, and in the [shell script](https://github.com/naturalis/trait-functional-poaceae/blob/main/scripts/traitGetData.sh) used to download the data. For this step, make sure the path leads to the correct location of these data files. In the first code block, make sure to enter the path you have saved the trait-functional-poaceae directory of this project to.
 
 ```{r eval=FALSE}
 project_path = '/path/to/project/'
