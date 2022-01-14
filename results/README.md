@@ -5,7 +5,6 @@ spread of the log seed mass in three subsets of the Poaceae data.
 The first subset is of 13 Domesticated species found in the data.
 The second subset is of 10 wild ancestors, aka crop progenitors, of the domesticated species.
 The final subset is of all species not in the first sets, thus all other wild species.
-Here are two tables of the species in the first and second groups.
 <br>
 <br>
 Next are two phylogenetic trees. The `treefigure-1.pdf` tree has a dendogram
