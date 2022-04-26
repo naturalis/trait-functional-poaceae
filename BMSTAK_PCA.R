@@ -32,20 +32,34 @@ rownames(rmp_norm) <- raw_means_poaceae[,1]
 rmp_PCA <- prcomp(rmp_norm, scale = FALSE)
 
 #Grafiek en resind genereren.
-fviz_pca_var(rmp_PCA)
-fviz_pca_biplot(rmp_PCA)
-eigen <- get_eigenvalue(rmp_PCA)
-resvar <- get_pca_var(rmp_PCA)
+#fviz_pca_var(rmp_PCA)
+#fviz_pca_biplot(rmp_PCA)
+#eigen <- get_eigenvalue(rmp_PCA)
+#resvar <- get_pca_var(rmp_PCA)
 resind <- get_pca_ind(rmp_PCA)
 
+#Data voorbereiden voor phylostep.
 raw_means_poaceae$X <- gsub(" ", "_", raw_means_poaceae$X)
 np_two <- newpoa[ , c('organism', 'measurement')]
 np_two$organism <- gsub(" ", "_", np_two$organism)
+np_two <- np_two[!duplicated(np_two[c("organism")]), ]
 rescoord <- resind$coord
 rescoord <- cbind(rescoord, new_col = raw_means_poaceae$X)
 newresind <- merge(np_two, rescoord, by.x = c('organism'), by.y = c('new_col'))
+rownames(newresind) <- newresind$organism
+newphy <- keep.tip(phy, newresind$organism)
+newresind <- subset(newresind, select = -c(organism))
+gebrDim <- c("measurement", "Dim.1", "Dim.2", "Dim.3", "Dim.4", "Dim.5", "Dim.7")
+newresind[gebrDim] <- sapply(newresind[gebrDim],as.numeric)
 
+cresind <- newresind[!duplicated(newresind[c("measurement")]), ]
+cresind$measurement <- log(cresind$measurement)
+cresind <- newresind[which(newresind$measurement < 1),]
+
+#Installeren pyhlolm.
 install.packages("phylolm")
 library(phylolm)
+
+#Phylostep & phylolm uitvoeren.  
 phylostep("measurement ~ Dim.1 + Dim.2 + Dim.3 + Dim.4 + Dim.5 + Dim.6 + Dim.7", data = newresind, phy = newphy, model = "BM", direction = "both")
-hylolm()
+phylolm()
