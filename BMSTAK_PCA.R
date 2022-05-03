@@ -1,65 +1,47 @@
-#Gebruikte packages installeren.
+#Installing packages.
 install.packages("ggplot2")
 install.packages("factoextra")
+install.packages("ape")
+install.packages("phylolm")
 
-#Gebruikte packages inladen.
+#Library-ing packages.
 library(ggplot2)
 library(factoextra)
+library(ape)
+library(phylolm)
 
-#Bestanden inlezen.
+#Reading files.
 raw_means <- read.csv("raw_means.csv", stringsAsFactors = FALSE)
 poaceae_seedmasses <- read.csv("poaceae_seedmasses.csv", stringsAsFactors = FALSE)
-
-#APE
-install.packages("ape")
-library(ape)
-phylist <- poaceae_seedmasses$organism
-phylist <- gsub(" ", "_", phylist)
-phylist <- intersect(phylist, phy$tip.label)
 phy <- read.tree("ALLMB.tre.txt")
-newphy <- keep.tip(phy, phylist)
 
-#Niet-poaceae uit raw_means filteren.
-phylistspace <- gsub("_", " ", phylist)
-raw_means_poaceae <- raw_means[which(raw_means$X %in% phylistspace),]
-newpoa <- poaceae_seedmasses[which(poaceae_seedmasses$organism %in% raw_means_poaceae$X),]
+rmp <- raw_means[which(raw_means$X %in% poaceae_seedmasses$organism),]
+newphy <- keep.tip(phy, gsub(" ", "_", rmp$X))
 
-#Normalisatie.
-rmp_norm <- as.data.frame(scale(raw_means_poaceae[,-1]))
-rownames(rmp_norm) <- raw_means_poaceae[,1]
+#Normalisation.
+rmp_norm <- as.data.frame(scale(rmp[,-1]))
+rownames(rmp_norm) <- rmp[,1]
 
-#Uitvoeren PCA.
+#PCA.
 rmp_PCA <- prcomp(rmp_norm, scale = FALSE)
-
-#Grafiek en resind genereren.
-#fviz_pca_var(rmp_PCA)
-#fviz_pca_biplot(rmp_PCA)
-#eigen <- get_eigenvalue(rmp_PCA)
-#resvar <- get_pca_var(rmp_PCA)
 resind <- get_pca_ind(rmp_PCA)
+rescoord <- as.data.frame(resind$coord)
+rescoord['organism'] <- rmp$X
 
-#Data voorbereiden voor phylostep.
-raw_means_poaceae$X <- gsub(" ", "_", raw_means_poaceae$X)
-np_two <- newpoa[ , c('organism', 'measurement')]
-np_two$organism <- gsub(" ", "_", np_two$organism)
-np_two <- np_two[!duplicated(np_two[c("organism")]), ]
-rescoord <- resind$coord
-rescoord <- cbind(rescoord, new_col = raw_means_poaceae$X)
-newresind <- merge(np_two, rescoord, by.x = c('organism'), by.y = c('new_col'))
-rownames(newresind) <- newresind$organism
-newphy <- keep.tip(phy, newresind$organism)
+poa_two <- poaceae_seedmasses[ , c('organism', 'measurement')]
+newresind <- merge(poa_two, rescoord, by.x = c('organism'), by.y = c('organism'))
+newresind <- newresind[!duplicated(newresind[c('organism')]), ]
+rownames(newresind) <- gsub(" ", "_",newresind$organism)
 newresind <- subset(newresind, select = -c(organism))
-gebrDim <- c("measurement", "Dim.1", "Dim.2", "Dim.3", "Dim.4", "Dim.5", "Dim.7")
-newresind[gebrDim] <- sapply(newresind[gebrDim],as.numeric)
 
+'
 cresind <- newresind[!duplicated(newresind[c("measurement")]), ]
 cresind$measurement <- log(cresind$measurement)
 cresind <- newresind[which(newresind$measurement < 1),]
+cresind <- head.matrix(newresind)
+cphy <- keep.tip(phy, c("Aegilops_crassa", "Aegilops_cylindrica", "Aegilops_speltoides", "Aegilops_tauschii", "Agrostis_gigantea", "Alopecurus_aequalis"))
+'
 
-#Installeren pyhlolm.
-install.packages("phylolm")
-library(phylolm)
-
-#Phylostep & phylolm uitvoeren.  
-phylostep("measurement ~ Dim.1 + Dim.2 + Dim.3 + Dim.4 + Dim.5 + Dim.6 + Dim.7", data = newresind, phy = newphy, model = "BM", direction = "both")
+#Phylostep & phylolm uitvoeren.
+phylostep(measurement ~ Dim.1 + Dim.2 + Dim.3 + Dim.4 + Dim.5 + Dim.6 + Dim.7, data = newresind, phy = newphy, model = "BM", direction = "both")
 phylolm()
