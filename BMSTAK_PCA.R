@@ -15,46 +15,43 @@ raw_means <- read.csv("raw_means.csv", stringsAsFactors = FALSE)
 poaceae_seedmasses <- read.csv("poaceae_seedmasses.csv", stringsAsFactors = FALSE)
 phy <- read.tree("ALLMB.tre.txt")
 
-#Keeping poaceae species in the tree.
+#Filtering the species to the ones present in raw_means, poaceae_seedmasses and phy datafiles.
 rmp <- raw_means[which(raw_means$X %in% poaceae_seedmasses$organism),]
 newphy <- keep.tip(phy, gsub(" ", "_", rmp$X))
+newphy <- drop.tip(newphy, c("Aegilops_crassa", "Aegilops_cylindrica", "Aegilops_speltoides", "Aegilops_tauschii",
+                           "Alopecurus_pratensis", "Alopecurus_vaginatus", "Avena_barbata", "Briza_maxima",
+                           "Calamagrostis_arundinacea", "Calamagrostis_canadensis", "Chionochloa_rigida",
+                           "Digitaria_violascens", "Echinochloa_crus-galli", "Eleusine_indica", "Eragrostis_pilosa",
+                           "Lagurus_ovatus", "Lolium_perenne", "Lophatherum_gracile", "Melica_ciliata",
+                           "Oryza_rufipogon", "Poa_colensoi", "Sporobolus_africanus", "Sporobolus_anglicus",
+                           "Trisetum_flavescens", "Triticum_dicoccoides", "Uniola_paniculata", "Zea_mays"))
+rmp <- rmp[-c(1:7, 11, 13, 16, 22, 25, 27, 32, 35, 43, 48, 53, 58:60, 64, 65, 69, 71, 74, 75), ]
 
 #Normalisation.
 rmp_norm <- as.data.frame(scale(rmp[,-1]))
 rownames(rmp_norm) <- rmp[,1]
 
-#PCA and making a data.frame with the PCA results.
+#PCA, and creating a data.frame for merging with poaceae_seedmasses.
 rmp_PCA <- prcomp(rmp_norm, scale = FALSE)
 resind <- get_pca_ind(rmp_PCA)
 rescoord <- as.data.frame(resind$coord)
 rescoord['organism'] <- rmp$X
 
-#Preparing newresind data.frame for phylostep.
+#Merging the PCA results with the seed masses.
 poa_two <- poaceae_seedmasses[ , c('organism', 'measurement')]
 newresind <- merge(poa_two, rescoord, by.x = c('organism'), by.y = c('organism'))
 newresind <- newresind[!duplicated(newresind[c('organism')]), ]
 rownames(newresind) <- gsub(" ", "_",newresind$organism)
 newresind <- subset(newresind, select = -c(organism))
-
-redresind <- newresind[-c(1:4, 10, 11, 15, 19, 22, 23, 28, 34, 36, 37, 40, 48, 50, 50:52, 54, 60, 67, 68, 72:75), ]
-redresind$measurement <- log(redresind$measurement)
-
-cphy <- drop.tip(newphy, c("Aegilops_crassa", "Aegilops_cylindrica", "Aegilops_speltoides", "Aegilops_tauschii",
-                        "Alopecurus_pratensis", "Alopecurus_vaginatus", "Avena_barbata", "Briza_maxima",
-                        "Calamagrostis_arundinacea", "Calamagrostis_canadensis", "Chionochloa_rigida",
-                        "Digitaria_violascens", "Echinochloa_crus-galli", "Eleusine_indica", "Eragrostis_pilosa",
-                        "Lagurus_ovatus", "Lolium_perenne", "Lophatherum_gracile", "Melica_ciliata",
-                        "Oryza_rufipogon", "Poa_colensoi", "Sporobolus_africanus", "Sporobolus_anglicus",
-                        "Trisetum_flavescens", "Triticum_dicoccoides", "Uniola_paniculata", "Zea_mays"))
+newresind$measurement <- log(newresind$measurement)
 
 #Performing phylogenetic analysis.
-phylomodel <- phylostep(measurement ~ Dim.1 + Dim.2 + Dim.3 + Dim.4 + Dim.5 + Dim.6 + Dim.7, data = redresind, phy = cphy, model = "BM", direction = "both")
-phyloend <- phylolm("measurement ~ 1 + Dim.3 + Dim.5", redresind, phy = cphy, model = "BM")
+phylomodel <- phylostep(measurement ~ Dim.1 + Dim.2 + Dim.3 + Dim.4 + Dim.5 + Dim.6, data = newresind, phy = newphy, model = "BM", direction = "both")
+phyloend <- phylolm("measurement ~ 1 + Dim.3 + Dim.6", newresind, phy = newphy, model = "BM")
 summary(phyloend)
 
-#Dimension 3 contribution.
+fviz_pca_biplot(rmp_PCA)
 fviz_contrib(rmp_PCA, choice = "var", axes = 3, top = 10)
-#Dimension 1 and 3 biplot.
-fviz_pca_var(rmp_PCA, axes = c(1, 3))
-#Dimension eigen-values.
+fviz_contrib(rmp_PCA, choice = "var", axes = 6, top = 10)
 fviz_eig(rmp_PCA)
+eigenvalues <- get_eig(rmp_PCA)
