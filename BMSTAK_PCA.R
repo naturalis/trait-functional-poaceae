@@ -1,3 +1,12 @@
+"
+Script for PCA and stepwise phylogenetic analysis on Poaceae seed mass and
+environmental data.
+Made by Laurens-Willem Janssen, for Naturalis.
+Guided by Rutger Vos
+
+"
+
+
 #Installing packages.
 install.packages("ggplot2")
 install.packages("factoextra")
@@ -55,3 +64,12 @@ fviz_contrib(rmp_PCA, choice = "var", axes = 3, top = 10)
 fviz_contrib(rmp_PCA, choice = "var", axes = 6, top = 10)
 fviz_eig(rmp_PCA)
 eigenvalues <- get_eig(rmp_PCA)
+
+rmp_vis <- merge(poa_two, rmp, by.x = c('organism'), by.y = c('X'))
+rmp_vis <- rmp_vis[!duplicated(rmp_vis[c('organism')]), ]
+plot.default(rmp_vis$measurement, rmp_vis$PETWettestQuarter,
+             xlab = "Seed Size measurement (mg)", ylab = "PETWettestQuarter", main = "PETWettestQuarter compared to seed mass")
+rmp_vis$measurement <- log(rmp_vis$measurement)
+plot.default(rmp_vis$measurement, rmp_vis$Aspect,
+             xlab = "Seed Size measurement (mg)", ylab = "Aspect", main = "Aspect compared to seed mass")
+plot.default(rmp_vis$measurement, rmp_vis$bio8)
