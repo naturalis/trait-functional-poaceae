@@ -55,3 +55,14 @@ This analysis was initially run with R version 4.1.0, and required the following
 |tidytree     |1.4-5    |treeio, ggtree |
 |treeio       |1.16.1   |-              |
 |usdm         |1.1-18   |-              |
+
+### seedmass_PCA.r
+This is a r script that performs a PCA and stepwise fylogenetic analysis with the seedmass and environmental data from Poaceae species. The input of script are the files poaceae_seedmass.csv, raw_means.csv and ALLBM.tre.txt. Theses files can be found in the `/data` directory. The figures created by this R script can be found in the `/results` directory.
+<br>
+The packages required to run this R script are as followed:
+|Package      |Version used  |Dependency of  |
+|-------------|--------------|---------------|
+|ape          |5.6-2         |phylolm        |
+|ggplot2      |3.3.5         |-              |
+|factoextra   |1.0.7         |ggplot2        |
+|phylolm      |2.6.2         |-              |
