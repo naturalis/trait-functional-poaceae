@@ -1,31 +1,42 @@
-"
+---
+title: "R script for PCA and phylogenetic analysis of Pocaeae seed mass"
+output: html_notebook
+---
 Script for PCA and stepwise phylogenetic analysis on Poaceae seed mass and
 environmental data.
-Made by Laurens-Willem Janssen from Hogeschool Leiden, for Naturalis Biodiversity Center.
-Guided by Rutger Vos
-"
+Made by Laurens-Willem Janssen (s1114416) from Hogeschool Leiden.
+For Naturalis Biodiversity Center, Guided by Rutger Vos.
 
-
-#Installing packages.
+The packages factoextra, ape and phylolm are used in script. Factoextra needs ggplot2 to function, which means four packages in total are used in the script.
+```{r}
 install.packages("ggplot2")
 install.packages("factoextra")
 install.packages("ape")
 install.packages("phylolm")
-
-#Library-ing packages.
+```
+Library-ing all needed packages.
+```{r}
 library(ggplot2)
 library(factoextra)
 library(ape)
 library(phylolm)
+```
 
-#Reading files.
+The three files used in this script, raw_means.csv, poaceae_seedmasses.csv and ALLMB.tre.txt are read.Raw_means.csv contains the environmental data about 1595 Poaceae species. Poaceae_seedmasses.csv containts the measurement of 1590 Poaceae seeds, measured in mg. ALLBM.tre is a phylogenetic tree containing 356305 Poaceae species as leaves.
+
+The data objects raw_means and phy are filtered to only keep the poaceae species present in poaceae_seedmasses.csv.
+```{r}
 raw_means <- read.csv("raw_means.csv", stringsAsFactors = FALSE)
 poaceae_seedmasses <- read.csv("poaceae_seedmasses.csv", stringsAsFactors = FALSE)
 phy <- read.tree("ALLMB.tre.txt")
 
-#Filtering the species to the ones present in raw_means, poaceae_seedmasses and phy datafiles.
+#Filtering the organisms to the ones present poaceae_seedmasses.
 rmp <- raw_means[which(raw_means$X %in% poaceae_seedmasses$organism),]
 newphy <- keep.tip(phy, gsub(" ", "_", rmp$X))
+```
+
+Various Poaceae species in the raw_means and poaceae_seedmasses datasets have strange seed sizes, or are domesticated or feral species, or were brought to new environments by humans. The 75 poaceae species were looked up to see if they had any of these qualities. These species are not representative for a seed mass analysis, and thus were removed.
+```{r}
 newphy <- drop.tip(newphy, c("Aegilops_crassa", "Aegilops_cylindrica", "Aegilops_speltoides", "Aegilops_tauschii",
                            "Alopecurus_pratensis", "Alopecurus_vaginatus", "Avena_barbata", "Briza_maxima",
                            "Calamagrostis_arundinacea", "Calamagrostis_canadensis", "Chionochloa_rigida",
@@ -34,42 +45,60 @@ newphy <- drop.tip(newphy, c("Aegilops_crassa", "Aegilops_cylindrica", "Aegilops
                            "Oryza_rufipogon", "Poa_colensoi", "Sporobolus_africanus", "Sporobolus_anglicus",
                            "Trisetum_flavescens", "Triticum_dicoccoides", "Uniola_paniculata", "Zea_mays"))
 rmp <- rmp[-c(1:7, 11, 13, 16, 22, 25, 27, 32, 35, 43, 48, 53, 58:60, 64, 65, 69, 71, 74, 75), ]
+```
 
-#Normalisation.
+The object rmp is normalized. This is done as without normalization, the variables GrowingDegDays0 and GrowingDegDays5 are too dominant.
+```{r}
 rmp_norm <- as.data.frame(scale(rmp[,-1]))
 rownames(rmp_norm) <- rmp[,1]
+```
 
-#PCA, and creating a data.frame for merging with poaceae_seedmasses.
+The PCA is performed. the object rescoord is made to later merge with poaceae_seedmasses, to create a data.frame with the organism name, seed mass and dimension positions. The collumn 'organism' is added for later use.
+```{r}
 rmp_PCA <- prcomp(rmp_norm, scale = FALSE)
 resind <- get_pca_ind(rmp_PCA)
 rescoord <- as.data.frame(resind$coord)
 rescoord['organism'] <- rmp$X
+```
 
-#Merging the PCA results with the seed mass data.
+Merging the data.frame rescoord with the data from poaceae_seedmasses to include the seedmass for every poaceae grass in rescoord. A log-transformation is also preformed on the seed mass values.
+```{r}
 poa_two <- poaceae_seedmasses[ , c('organism', 'measurement')]
 newresind <- merge(poa_two, rescoord, by.x = c('organism'), by.y = c('organism'))
 newresind <- newresind[!duplicated(newresind[c('organism')]), ]
 rownames(newresind) <- gsub(" ", "_",newresind$organism)
 newresind <- subset(newresind, select = -c(organism))
 newresind$measurement <- log(newresind$measurement)
+```
 
-#Performing phylogenetic analysis.
+Performing the phyogenetic analysis using phylostep. This is done with a formula containing Dim.1 until Dim.6. These six dimensions contain 95 percent of the total varation in the PCA result.
+```{r}
 phylomodel <- phylostep(measurement ~ Dim.1 + Dim.2 + Dim.3 + Dim.4 + Dim.5 + Dim.6, data = newresind, phy = newphy, model = "BM", direction = "both")
+phylomodel$formula
+```
+The results of the phylogenetic analysis showed that the formula including Dim.3 and Dim.6 was the best at predicting seed mass.
+```{r}
 phyloend <- phylolm("measurement ~ 1 + Dim.3 + Dim.6", newresind, phy = newphy, model = "BM")
 summary(phyloend)
+```
 
-#Creating PCA_biplot, PCA_Dim3contrib, PCA_Dim6contrib and PCA_AllDimcontrib.
+Six graphics are made displaying the PCA results: The contributions to Dim.3 and Dim.6, the variation percentage of the top 10 dimensions, and PETwettestQuarter and Aspect compared to seed mass.
+```{r}
 fviz_pca_biplot(rmp_PCA)
 fviz_contrib(rmp_PCA, choice = "var", axes = 3, top = 10)
 fviz_contrib(rmp_PCA, choice = "var", axes = 6, top = 10)
 fviz_eig(rmp_PCA, main = "Variation percentage of top 10 dimensions")
 genvalues <- get_eig(rmp_PCA)
 genvalues
+```
 
-#Creating PCA_scatterPETWQ and PCA_scatterAspect.
+For the scatter plots showing PETWettestQuarter/Aspect with Seed Mass, a separate data object was made containing the not-modified values for PETWettestQuarter and Aspect, together with Seed Mass values.
+```{r}
 rmp_vis <- merge(poa_two, rmp, by.x = c('organism'), by.y = c('X'))
 rmp_vis <- rmp_vis[!duplicated(rmp_vis[c('organism')]), ]
 plot.default(rmp_vis$measurement, rmp_vis$PETWettestQuarter,
              xlab = "Seed Size measurement (mg)", ylab = "PETWettestQuarter", main = "PETWettestQuarter compared to seed mass")
 plot.default(rmp_vis$measurement, rmp_vis$Aspect,
              xlab = "Seed Size measurement (mg)", ylab = "Aspect", main = "Aspect compared to seed mass")
+```
+
